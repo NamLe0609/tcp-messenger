@@ -1,5 +1,6 @@
 import socket
 import threading
+import select
 import sys
 
 def main():
@@ -23,7 +24,7 @@ def main():
 def receive(client, nickname):
     while True:
         try:
-            message = client.recv(1024).decode('ascii')            
+            message = client.recv(1024).decode('ascii')
             if message == 'NICK':
                 client.send(nickname.encode('ascii'))
             else:
@@ -38,5 +39,43 @@ def write(client, nickname):
         message = f'{nickname}: {body}'
         client.send(message.encode('ascii'))
 
+class Client:
+    def __init__(self, name='Joe', host=socket.gethostname(), port=1234):
+        self.name = name
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((host, port))
+        self.client.send(name.encode('ascii'))
+        
+    def operate(self):
+        while True:
+            try:
+                r,w,e = select.select([0, self.client], [], [], 0.5)
+            
+                for s in r:
+                    if s == self.client:
+                        msg = s.recv(1024).decode('ascii')
+                        if not msg:
+                            sys.exit()
+                        else:
+                            print(msg)
+                    else:
+                        try:
+                            msg = input('')
+                        except:
+                            print('fuck')
+                            self.client.close()
+                            break
+                        self.client.send(f'{self.name}: {msg}'.encode('ascii'))
+                        print('msg sent')
+                        
+            except:
+                print('Interrupted')
+                self.client.close()
+                break
+            
 if __name__ == '__main__':
-    main()
+    """ if len(sys.argv) < 3:
+        sys.exit('Please run with all arguments') """
+    
+    client = Client()
+    client.operate()

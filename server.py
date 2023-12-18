@@ -8,51 +8,61 @@ import select
 #logging.basicConfig(filename='server.log', filemode='w', format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logging.basicConfig(format='%(levelname)s - %(asctime)s: %(message)s', level=logging.DEBUG)
 
-def main():
+class Server:
+    def __init__(self, host=socket.gethostname(), port=1234):
+        # Setup server
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind((host, port))
+        self.server.listen(10)
+        
+        # Setup client mapping
+        self.clients = dict()
+        
+        # Setup select
+        self.outputs = []
     
-    HOST = socket.gethostname()
-    #PORT = sys.argv[1]
-    PORT = 1234
-
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen()
+    def getClientAddress(self, client):
+        return self.clients[client][0]
     
-    clients = dict()
-    receive(server=server, clients=clients)
-
-def broadcast(message, clients):
-    for client in clients:
-        client.send(message)
-
-def handle(client, clients):
-    while True:
-        try:
-            message = client.recv(1024)
-            broadcast(message, clients)
-        except:
-            nickname = clients[client]
-            client.close()
-            clients.pop(client)
-            broadcast(f'{nickname} just left!'.encode('ascii'), clients)
-            break
+    def getClientName(self, client):
+        return self.clients[client][1]
+    
+    def operate(self):
+        inputs = [self.server]
+        while True:
+            try:
+                r,w,e = select.select(inputs, self.outputs, [], 0.5)
+                
+                for s in r:
+                    if s == self.server:
+                        client, address = self.server.accept()
+                        print(f'Connected with {str(address)}')
+                        
+                        self.clients[client] = (address, client.recv(1024).decode('ascii'))
+                        inputs.append(client)
+                        
+                        print(f'Client nickname is {self.getClientName(client)}')
+                        for o in self.outputs:
+                            o.send(f'{self.getClientName(client)} joined!'.encode('ascii'))
+                    else:
+                        msg = s.recv(1024).decode('ascii')
+                        if msg:
+                            for o in self.outputs:
+                                if o != s:
+                                    o.send(msg)
+                        else:
+                            s.close()
+                            inputs.remove(s)
+                            self.outputs.remove(s)
+                            
+                            for o in self.outputs:
+                                o.send(f'{self.getClientName(s)} just left!'.encode('ascii'))
+                                
+                            self.clients.pop(s)
             
-
-def receive(server, clients):
-    while True:
-        client, address = server.accept()
-        print(f'Connected with {str(address)}')
-        
-        client.send('NICK'.encode('ascii'))
-        nickname = client.recv(1024).decode('ascii')
-        clients[client] = nickname
-        
-        print(f'Client nickname is {nickname}')
-        broadcast(f'{nickname} joined!'.encode('ascii'), clients)
-        
-        thread = threading.Thread(target=handle, args=(client, clients,))
-        thread.start()
+            except KeyboardInterrupt:    
+                self.server.close()
         
 if __name__ == '__main__':
-    main()
-    
+    server = Server()
+    server.operate()
