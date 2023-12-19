@@ -2,41 +2,47 @@ import socket
 import threading
 import sys
 
-def main():
-    """ USERNAME = sys.argv[1]
-    HOSTNAME = sys.argv[2]
-    PORT = int(sys.argv[3]) """
+class Client:
     
-    USERNAME = 'Joe'
-    HOSTNAME = socket.gethostname()
-    PORT = 1234
+    def __init__(self, username='John_Pork', host='127.0.0.1', port='1234'):
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((host, port))
+        self.username = username
+        self.client.send(self.username.encode('ascii'))
+        
+        self.writeThread = threading.Thread(target=self.write, args=())
+        self.receiveThread = threading.Thread(target=self.receive, args=())
 
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((HOSTNAME, PORT))
-    
-    receiveThread = threading.Thread(target=receive, args=(client, USERNAME))
-    receiveThread.start()
-    
-    writeThread = threading.Thread(target=write, args=(client, USERNAME))
-    writeThread.start()
+    def receive(self):
+        while True:
+            try:
+                message = self.client.recv(1024).decode('ascii')            
+                if message:
+                    print(message)
+                else:
+                    print('Server shut down. Disconnecting.')
+                    self.client.close()
+                    sys.exit(0)
+            except:
+                break
 
-def receive(client, nickname):
-    while True:
-        try:
-            message = client.recv(1024).decode('ascii')            
-            if message == 'NICK':
-                client.send(nickname.encode('ascii'))
-            else:
-                print(message)
-        except:
-            client.close()
-            break
-
-def write(client, nickname):
-    while True:
-        body = input('> ')
-        message = f'{nickname}: {body}'
-        client.send(message.encode('ascii'))
+    def write(self):
+        while True:
+            body = input('')
+            if not self.receiveThread.is_alive():
+                sys.exit(0)  
+            message = f'{self.username}: {body}'
+            self.client.send(message.encode('ascii'))
+            
+    def run(self):
+        self.receiveThread.start()
+        self.writeThread.start()
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) <= 3:
+        print('Need 3 arguments')
+        sys.exit()
+    
+    client = Client(username=sys.argv[1], host=sys.argv[2], port=int(sys.argv[3]))
+    client.run()
+    
