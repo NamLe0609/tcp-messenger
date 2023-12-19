@@ -17,27 +17,28 @@ class Server:
         self.server.bind((host, port))
         self.server.listen()
         
-        # Setup storage for client info
+        # Setup storage for client info in the form (address, username)
         self.clients = dict()
         self.takenNames = set()
 
     def broadcast(self, message, mode=0, broadcaster=None, broadcastee=None):
-        message = message.encode(self.ENCODING)
         match mode:
-            # Broadcast to all
+            # Broadcast to all (Server mode)
             case 1:
+                message = f'[SERVER]: ' + message
                 for client in self.clients:
-                    client.send(message)
+                    client.send(message.encode(self.ENCODING))
             
             # Broadcast to all but broadcaster
             case 2:
+                message = f'[{self.clients[broadcaster][1]}]: {message}'
                 for client in self.clients:
                     if client != broadcaster:
-                        client.send(message)
+                        client.send(message.encode(self.ENCODING))
             
             # Broadcast to individual
             case 3:
-                broadcastee.send(message)
+                broadcastee.send(message.encode(self.ENCODING))
                 
     def handle(self, client):
         while True:
@@ -82,6 +83,8 @@ class Server:
                 self.broadcast(f'Username taken', 3, broadcastee=client)
                 client.close()
                 continue
+            else:
+                self.broadcast(f'Instructions: [/leave] to exit, [/whisper] to directly message someone, [/help] to show instructions', 3, broadcastee=client)
             
             # Store clients' address and username with the socket as key
             self.clients[client] = (address, username)
