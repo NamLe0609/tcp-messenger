@@ -16,11 +16,13 @@ class Client:
     def receive(self):
         while True:
             try:
-                message = self.client.recv(1024).decode('ascii')            
+                message = self.client.recv(1024).decode('ascii')
+                if not self.writeThread.is_alive():
+                    sys.exit(0)
                 if message:
                     print(message)
                 else:
-                    print('Server shut down. Disconnecting.')
+                    print('Something went wrong. Disconnecting.')
                     self.client.close()
                     sys.exit(0)
             except:
@@ -29,11 +31,31 @@ class Client:
     def write(self):
         while True:
             body = input('')
-            if not self.receiveThread.is_alive():
-                sys.exit(0)  
-            message = f'{self.username}: {body}'
-            self.client.send(message.encode('ascii'))
+            message = ''
             
+            if not self.receiveThread.is_alive():
+                sys.exit(0)
+                
+            if body[0] == '/':
+                self.runCommand(body)
+            else:
+                message = f'{self.username}: {body}'
+                self.client.send(message.encode('ascii'))
+            
+    def runCommand(self, command):
+        match command[1:]:
+            case 'wisper':
+                pass
+            case 'help':
+                pass
+            case 'leave':
+                print('Quitting...')
+                self.client.send('/leave'.encode('ascii'))
+                sys.exit(0)
+                
+            case default:
+                print('Invalid command')
+        
     def run(self):
         self.receiveThread.start()
         self.writeThread.start()
