@@ -136,6 +136,7 @@ class Server:
         self.broadcast(f'[SERVER]: {username} just left. Goodbye!', mode=1)
         logging.info("Broadcasted '%s just left. Goodbye!'", username)
         logging.info('Disconnected with %s. Remove client named %s', address, username)
+        print("Disconnected with %s. Remove client named %s'", address, username)
 
     def run_command(self, command, client=None):
         """Function to run commands when a forward slash given"""

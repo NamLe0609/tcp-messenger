@@ -33,13 +33,11 @@ class Client:
                     print(f"Deleted file: {os.path.basename(entry.path)}")
 
             os.rmdir(folder_name)
-            print(f"Folder '{folder_name}' has been deleted")
 
     def make_folder(self, folder_name):
         """Function to initialize a folder"""
         self.delete_folder(folder_name)
         os.makedirs(folder_name)
-        print(f"Folder '{folder_name}' has been created")
 
     def get_message(self, message_length):
         """Function to receive full messages"""
@@ -169,6 +167,21 @@ class Client:
 
         self.make_folder(self.username)
         self.send_message(self.username)
+        # This art is exclusively for decorative purposes
+        # Welcome message still is sent from the server
+        # This is not meant for marking!
+        print(r"""
+
+.----------------------------------------------------------------.
+| ██████╗██╗  ██╗ █████╗ ████████╗████████╗██╗███╗   ██╗ ██████╗ |
+|██╔════╝██║  ██║██╔══██╗╚══██╔══╝╚══██╔══╝██║████╗  ██║██╔════╝ |
+|██║     ███████║███████║   ██║      ██║   ██║██╔██╗ ██║██║  ███╗|
+|██║     ██╔══██║██╔══██║   ██║      ██║   ██║██║╚██╗██║██║   ██║|
+|╚██████╗██║  ██║██║  ██║   ██║      ██║   ██║██║ ╚████║╚██████╔╝|
+| ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝      ╚═╝   ╚═╝╚═╝  ╚═══╝ ╚═════╝ |
+'----------------------------------------------------------------'
+
+        """)
 
 if __name__ == '__main__':
     if len(sys.argv) <= 3:
