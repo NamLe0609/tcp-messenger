@@ -17,6 +17,7 @@ class Server:
     def __init__(self, host='127.0.0.1', port=1234):
         # Setup server socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind((host, port))
         self.server.listen()
 
@@ -30,7 +31,7 @@ class Server:
         self.make_folder(folder_name)
 
     def make_folder(self, folder_name):
-        """Function to initialize download folder"""
+        """Function to initialize a folder"""
         if os.path.exists(folder_name):
             for entry in os.scandir(folder_name):
                 if entry.is_file():
@@ -41,7 +42,7 @@ class Server:
             print(f"Folder '{folder_name}' has been deleted")
 
         os.makedirs(folder_name)
-        print("Folder '{folder_name}' has been created")
+        print(f"Folder '{folder_name}' has been created")
 
         # Populate folder with random files of size between 128 to 2048 bytes
         num_of_files = 5
@@ -92,21 +93,26 @@ class Server:
 
     def broadcast(self, message, mode=0, broadcaster=None, broadcastee=None):
         """Function to send messages"""
-        # Append a fixed size header
-        message = f'{len(message):<{HEADERSIZE}}' + message
+        # For binary data, send as-is
+        if isinstance(message, bytes):
+            header = f'{len(message):<{HEADERSIZE}}'.encode(ENCODING)
+            message = header + message
+        else:
+            message = f'{len(message):<{HEADERSIZE}}' + message
+            message = message.encode(ENCODING)
         match mode:
             # Broadcast to all (Server mode)
             case 1:
                 for client in self.clients:
-                    client.sendall(message.encode(ENCODING))
+                    client.sendall(message)
             # Broadcast to all but broadcaster
             case 2:
                 for client in self.clients:
                     if client != broadcaster:
-                        client.sendall(message.encode(ENCODING))
+                        client.sendall(message)
             # Broadcast to individual
             case 3:
-                broadcastee.sendall(message.encode(ENCODING))
+                broadcastee.sendall(message)
 
     def kill_connection(self, client):
         """Function to kill connection to unresponsive clients"""
@@ -130,8 +136,16 @@ class Server:
                                    '\n[SERVER]: To download a file, type /download [file_name]',
                                    mode=3, broadcastee=client)
                 else:
-                    pass
-                    #_, file_name = command.split(' ', 1)
+                    _, file_name = command.split(' ')
+                    file_name = os.path.join('download', file_name)
+                    if os.path.exists(file_name):
+                        with open(file_name, 'rb') as file_data:
+                            file_content = file_data.read()
+                            self.broadcast(file_content, mode=3, broadcastee=client)
+                    else:
+                        self.broadcast('The file requested does not exist',
+                                       mode=3, broadcastee=client)
+
             case 'whisper':
                 _, target, message = command.split(' ', 2)
                 if target not in self.taken_names:
@@ -150,24 +164,30 @@ class Server:
     def run(self):
         """Function to run The server"""
         while True:
-            client, address = self.server.accept()
-            username = self.get_message(client)
+            try:
+                client, address = self.server.accept()
+                username = self.get_message(client)
 
-            # Disallow duplicate username in chat
-            if username in self.taken_names:
-                self.broadcast('[SERVER]: Username taken', mode=3, broadcastee=client)
-                client.close()
-                continue
+                # Disallow duplicate username in chat
+                if username in self.taken_names:
+                    self.broadcast('[SERVER]: Username taken', mode=3, broadcastee=client)
+                    client.close()
+                    continue
 
-            # Store clients' address and username with the socket as key
-            self.clients[client] = (address, username)
-            self.taken_names[username] = client
+                # Store clients' address and username with the socket as key
+                self.clients[client] = (address, username)
+                self.taken_names[username] = client
 
-            # Broadcast after as it loops over clients dictionary
-            print(f'Connected with {str(address)}. Add client named {username}')
-            self.broadcast(f'[SERVER]: {username} just joined. Welcome!', mode=1)
-            thread = threading.Thread(target=self.handle, args=(client,))
-            thread.start()
+                # Broadcast after as it loops over clients dictionary
+                print(f'Connected with {str(address)}. Add client named {username}')
+                self.broadcast(f'[SERVER]: {username} just joined. Welcome!', mode=1)
+                thread = threading.Thread(target=self.handle, args=(client,))
+                thread.start()
+            except KeyboardInterrupt:
+                self.server.close()
+                for client in self.clients:
+                    client.close()
+                break
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
