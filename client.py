@@ -24,8 +24,8 @@ class Client:
         # Variable to check if message is a file
         self.file_name = ''
 
-    def make_folder(self, folder_name):
-        """Function to initialize a folder"""
+    def delete_folder(self, folder_name):
+        """Function to delete a folder and its contents"""
         if os.path.exists(folder_name):
             for entry in os.scandir(folder_name):
                 if entry.is_file():
@@ -35,6 +35,9 @@ class Client:
             os.rmdir(folder_name)
             print(f"Folder '{folder_name}' has been deleted")
 
+    def make_folder(self, folder_name):
+        """Function to initialize a folder"""
+        self.delete_folder(folder_name)
         os.makedirs(folder_name)
         print(f"Folder '{folder_name}' has been created")
 
@@ -42,7 +45,7 @@ class Client:
         """Function to receive full messages"""
         full_message = ''
         while True:
-            message = self.client.recv(10)
+            message = self.client.recv(1024)
 
             if not message:
                 return ''
@@ -55,7 +58,7 @@ class Client:
         """Function to receive full files"""
         full_file = b''
         while True:
-            message = self.client.recv(10)
+            message = self.client.recv(1024)
 
             if not message:
                 return ''
@@ -77,7 +80,7 @@ class Client:
         progress_bar = '[' + '#' * width + ' ' * (bar_length - width) + ']' + ' ' + percentage
         # Uses ANSI character to move cursor left
         # Not sure if it works on windows or not, but works on Linux
-        sys.stdout.write(u"\u001b[1000D" + progress_bar)
+        sys.stdout.write("\u001b[1000D" + progress_bar)
         sys.stdout.flush()
 
     def send_message(self, message):
@@ -164,9 +167,8 @@ class Client:
         self.receive_thread.start()
         self.write_thread.start()
 
-        self.send_message(self.username)
         self.make_folder(self.username)
-
+        self.send_message(self.username)
 
 if __name__ == '__main__':
     if len(sys.argv) <= 3:
