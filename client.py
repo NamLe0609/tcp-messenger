@@ -64,24 +64,27 @@ class Client:
             if not self.receive_thread.is_alive():
                 sys.exit(0)
 
+            if not body:
+                continue
+
             # Commands start with a '/'
-            if body and body[0] == '/':
-                self.run_command(body[1:])
-            else:
-                self.send_message(body)
+            if body[0] == '/':
+                body = self.run_command(body)
+
+            self.send_message(body)
 
     def run_command(self, command):
         """Function to run commands when a forward slash given"""
-        match command:
-            case 'wisper':
-                pass
-            case 'help':
-                pass
+        command_type = command.split(' ')[0]
+        match command_type[1:]:
+            case 'whisper':
+                if len(command.split(' ')) < 3:
+                    return '/'
+                print('Whispering...')
             case 'leave':
-                print('Quitting...')
+                print('Leaving...')
                 self.running = False
-                self.send_message('/leave')
-                sys.exit(0)
+        return command
 
     def run(self):
         """Function to run the client object"""

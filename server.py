@@ -20,51 +20,26 @@ class Server:
 
         # Setup storage for client info in the form (address, username)
         self.clients = {}
-        self.taken_names = set()
+        # Setup mapping back from username to socket
+        self.taken_names = {}
 
     def broadcast(self, message, mode=0, broadcaster=None, broadcastee=None):
         """Function to send messages"""
         # Append a fixed size header
+        message = f'{len(message):<{HEADERSIZE}}' + message
         match mode:
             # Broadcast to all (Server mode)
             case 1:
-                message = '[SERVER]: ' + message
-                message = f'{len(message):<{HEADERSIZE}}' + message
                 for client in self.clients:
                     client.sendall(message.encode(ENCODING))
             # Broadcast to all but broadcaster
             case 2:
-                message = f'[{self.clients[broadcaster][1]}]: {message}'
-                message = f'{len(message):<{HEADERSIZE}}' + message
                 for client in self.clients:
                     if client != broadcaster:
                         client.sendall(message.encode(ENCODING))
             # Broadcast to individual
             case 3:
                 broadcastee.sendall(message.encode(ENCODING))
-
-    def handle(self, client):
-        """Function to handle messages received from clients"""
-        while True:
-            try:
-                message = self.get_message(client)
-                if not message:
-                    self.kill_connection(client)
-                elif message[0] == '/':
-                    self.run_command(message[1:], client=client)
-                else:
-                    self.broadcast(message, 2, broadcaster=client)
-            except OSError:
-                break
-
-    def kill_connection(self, client):
-        """Function to kill connection to unresponsive clients"""
-        address, username = self.clients[client]
-        client.close()
-        self.clients.pop(client)
-        self.taken_names.remove(username)
-        self.broadcast(f'{username} just left. Goodbye!', 1)
-        print(f'Disonnected with {str(address)}. Remove client named {username}')
 
     def get_message(self, client):
         """Function to receive full messages with header size"""
@@ -81,15 +56,48 @@ class Server:
             if len(full_message) - HEADERSIZE == message_length:
                 return full_message[HEADERSIZE:]
 
+    def handle(self, client):
+        """Function to handle messages received from clients"""
+        while True:
+            try:
+                message = self.get_message(client)
+                if not message:
+                    self.kill_connection(client)
+                elif message[0] == '/':
+                    self.run_command(message[1:], client=client)
+                else:
+                    self.broadcast(f'[{self.clients[client][1]}]: ' + message,
+                                   mode=2, broadcaster=client)
+            except OSError:
+                break
+
+    def kill_connection(self, client):
+        """Function to kill connection to unresponsive clients"""
+        address, username = self.clients[client]
+        client.close()
+        self.clients.pop(client)
+        self.taken_names.pop(username)
+        self.broadcast(f'[SERVER]: {username} just left. Goodbye!', mode=1)
+        print(f'Disonnected with {str(address)}. Remove client named {username}')
+
     def run_command(self, command, client=None):
         """Function to run commands when a forward slash given"""
-        match command:
-            case 'wisper':
-                pass
-            case 'help':
-                pass
+        command_type = command.split(' ')[0]
+        match command_type:
+            case 'whisper':
+                _, target, message = command.split(' ', 2)
+                if target not in self.taken_names:
+                    self.broadcast('[SERVER]: Username does not exist', mode=3, broadcastee=client)
+                elif target == self.clients[client][1]:
+                    self.broadcast('[SERVER]: You cannot whisper to yourself',
+                                   mode=3, broadcastee=client)
+                else:
+                    self.broadcast(f'[{self.clients[client][1]} (WHISPER)]: {message}',
+                               mode=3, broadcastee=self.taken_names[target])
             case 'leave':
                 self.kill_connection(client)
+            case _:
+                self.broadcast('[SERVER]: Invalid command', mode=3, broadcastee=client)
 
     def run(self):
         """Function to run The server"""
@@ -99,17 +107,17 @@ class Server:
 
             # Disallow duplicate username in chat
             if username in self.taken_names:
-                self.broadcast('Username taken', 3, broadcastee=client)
+                self.broadcast('[SERVER]: Username taken', mode=3, broadcastee=client)
                 client.close()
                 continue
 
             # Store clients' address and username with the socket as key
             self.clients[client] = (address, username)
-            self.taken_names.add(username)
+            self.taken_names[username] = client
 
             # Broadcast after as it loops over clients dictionary
             print(f'Connected with {str(address)}. Add client named {username}')
-            self.broadcast(f'{username} just joined. Welcome!', 1)
+            self.broadcast(f'[SERVER]: {username} just joined. Welcome!', mode=1)
             thread = threading.Thread(target=self.handle, args=(client,))
             thread.start()
 
