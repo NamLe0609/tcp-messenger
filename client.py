@@ -2,6 +2,7 @@
 import socket
 import threading
 import sys
+import os
 
 HEADERSIZE = 10
 ENCODING = 'utf-8'
@@ -77,13 +78,27 @@ class Client:
         """Function to run commands when a forward slash given"""
         command_type = command.split(' ')[0]
         match command_type[1:]:
+            case 'help':
+                pass
+
+            case 'make_folder':
+                pass
+
+            case 'download':
+                if len(command.split(' ')) < 2:
+                    print('Fetching download folder content...')
+                else:
+                    print('Downloading...')
+
             case 'whisper':
                 if len(command.split(' ')) < 3:
                     return '/'
                 print('Whispering...')
+
             case 'leave':
                 print('Leaving...')
                 self.running = False
+
         return command
 
     def run(self):

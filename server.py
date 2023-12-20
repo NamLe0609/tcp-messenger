@@ -35,7 +35,7 @@ class Server:
             for entry in os.scandir(folder_name):
                 if entry.is_file():
                     os.unlink(entry.path)
-                    print(f"Deleted file: {entry.path}")
+                    print(f"Deleted file: {os.path.basename(entry.path)}")
 
             os.rmdir(folder_name)
             print(f"Folder '{folder_name}' has been deleted")
@@ -50,6 +50,45 @@ class Server:
             with open(file_path, 'wb') as f:
                 f.write(os.urandom(random.randint(128, 2048)))
         print(f"{num_of_files} random binary files created in '{folder_name}'")
+
+    def get_files(self, folder_name):
+        """Function to return all files in a folder"""
+        files = ''
+        for entry in os.scandir(folder_name):
+            if entry.is_file():
+                files += f'   |--- {os.path.basename(entry.path)}\n'
+        return files
+
+    def handle(self, client):
+        """Function to handle messages received from clients"""
+        while True:
+            try:
+                message = self.get_message(client)
+                if not message:
+                    self.kill_connection(client)
+                elif message[0] == '/':
+                    self.run_command(message[1:], client=client)
+                else:
+                    self.broadcast(f'[{self.clients[client][1]}]: ' + message,
+                                   mode=2, broadcaster=client)
+            except OSError:
+                break
+
+    def get_message(self, client):
+        """Function to receive full messages with header size"""
+        full_message = ''
+        while True:
+            message = client.recv(10)
+            if not message:
+                return ''
+
+            # For the first recv, the file size is retrieved
+            if full_message == '':
+                message_length = int(message[:HEADERSIZE])
+
+            full_message += message.decode(ENCODING)
+            if len(full_message) - HEADERSIZE == message_length:
+                return full_message[HEADERSIZE:]
 
     def broadcast(self, message, mode=0, broadcaster=None, broadcastee=None):
         """Function to send messages"""
@@ -69,37 +108,6 @@ class Server:
             case 3:
                 broadcastee.sendall(message.encode(ENCODING))
 
-    def get_message(self, client):
-        """Function to receive full messages with header size"""
-        full_message = ''
-        while True:
-            message = client.recv(10)
-            if not message:
-                return ''
-
-            # For the first recv, the file size is retrieved
-            if full_message == '':
-                message_length = int(message[:HEADERSIZE])
-
-            full_message += message.decode(ENCODING)
-            if len(full_message) - HEADERSIZE == message_length:
-                return full_message[HEADERSIZE:]
-
-    def handle(self, client):
-        """Function to handle messages received from clients"""
-        while True:
-            try:
-                message = self.get_message(client)
-                if not message:
-                    self.kill_connection(client)
-                elif message[0] == '/':
-                    self.run_command(message[1:], client=client)
-                else:
-                    self.broadcast(f'[{self.clients[client][1]}]: ' + message,
-                                   mode=2, broadcaster=client)
-            except OSError:
-                break
-
     def kill_connection(self, client):
         """Function to kill connection to unresponsive clients"""
         address, username = self.clients[client]
@@ -113,6 +121,17 @@ class Server:
         """Function to run commands when a forward slash given"""
         command_type = command.split(' ')[0]
         match command_type:
+            case 'download':
+                # If only /download, return the download folder content
+                if command_type == command:
+                    message = self.get_files('download')
+                    self.broadcast('[SERVER]: The following files are in ' +
+                                   '[download]\n\ndownload/\n' + message +
+                                   '\n[SERVER]: To download a file, type /download [file_name]',
+                                   mode=3, broadcastee=client)
+                else:
+                    pass
+                    #_, file_name = command.split(' ', 1)
             case 'whisper':
                 _, target, message = command.split(' ', 2)
                 if target not in self.taken_names:
