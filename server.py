@@ -3,6 +3,8 @@ import sys
 import socket
 import threading
 import logging
+import os
+import random
 
 #logging.basicConfig(filename='server.log', filemode='w', format='%(levelname)s:%(message)s', level=logging.DEBUG)
 logging.basicConfig(format='%(levelname)s - %(asctime)s: %(message)s', level=logging.DEBUG)
@@ -20,8 +22,34 @@ class Server:
 
         # Setup storage for client info in the form (address, username)
         self.clients = {}
+
         # Setup mapping back from username to socket
         self.taken_names = {}
+
+        folder_name = 'download'
+        self.make_folder(folder_name)
+
+    def make_folder(self, folder_name):
+        """Function to initialize download folder"""
+        if os.path.exists(folder_name):
+            for entry in os.scandir(folder_name):
+                if entry.is_file():
+                    os.unlink(entry.path)
+                    print(f"Deleted file: {entry.path}")
+
+            os.rmdir(folder_name)
+            print(f"Folder '{folder_name}' has been deleted")
+
+        os.makedirs(folder_name)
+        print("Folder '{folder_name}' has been created")
+
+        # Populate folder with random files of size between 128 to 2048 bytes
+        num_of_files = 5
+        for i in range(num_of_files):
+            file_path = os.path.join(folder_name, f"file_{i+1}.bin")
+            with open(file_path, 'wb') as f:
+                f.write(os.urandom(random.randint(128, 2048)))
+        print(f"{num_of_files} random binary files created in '{folder_name}'")
 
     def broadcast(self, message, mode=0, broadcaster=None, broadcastee=None):
         """Function to send messages"""
@@ -49,6 +77,7 @@ class Server:
             if not message:
                 return ''
 
+            # For the first recv, the file size is retrieved
             if full_message == '':
                 message_length = int(message[:HEADERSIZE])
 
