@@ -83,23 +83,24 @@ class Server:
                     self.broadcast(f'[{self.clients[client][1]}]: ' + message,
                                    mode=2, broadcaster=client)
             except OSError:
-                break
+                sys.exit(0)
 
     def get_message(self, client):
         """Function to receive full messages with header size"""
+        # For the first recv, the file size is retrieved
+        message_length = client.recv(10).decode(ENCODING)
+        if not message_length:
+            return ''
+        message_length = int(message_length)
         full_message = ''
         while True:
-            message = client.recv(10)
+            message = client.recv(min(message_length, 8192)).decode(ENCODING)
             if not message:
                 return ''
-
-            # For the first recv, the file size is retrieved
-            if full_message == '':
-                message_length = int(message[:HEADERSIZE])
-
-            full_message += message.decode(ENCODING)
-            if len(full_message) - HEADERSIZE == message_length:
-                return full_message[HEADERSIZE:]
+            message_length -= len(message)
+            full_message += message
+            if not message_length:
+                return full_message
 
     def broadcast(self, message, mode=0, broadcaster=None, broadcastee=None):
         """Function to send messages"""
@@ -136,7 +137,7 @@ class Server:
         self.broadcast(f'[SERVER]: {username} just left. Goodbye!', mode=1)
         logging.info("Broadcasted '%s just left. Goodbye!'", username)
         logging.info('Disconnected with %s. Remove client named %s', address, username)
-        print("Disconnected with %s. Remove client named %s'", address, username)
+        print(f"Disconnected with {address}. Remove client named {username}'")
 
     def run_command(self, command, client=None):
         """Function to run commands when a forward slash given"""
@@ -207,7 +208,7 @@ class Server:
 
                 # Broadcast after as it loops over clients dictionary
                 logging.info('Connected with %s. Add client named %s', address, username)
-                print('Connected with %s. Add client named %s', address, username)
+                print(f'Connected with {address}. Add client named {username}')
                 self.broadcast(f'[SERVER]: {username} just joined. Welcome!', mode=1)
                 logging.info("Broadcast '%s just joined. Welcome!'", username)
                 thread = threading.Thread(target=self.handle, args=(client,))
