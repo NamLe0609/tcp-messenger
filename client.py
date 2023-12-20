@@ -42,12 +42,14 @@ class Client:
     def get_message(self, message_length):
         """Function to receive full messages"""
         full_message = ''
+        remaining = message_length
         while True:
-            message = self.client.recv(1024)
+            message = self.client.recv(min(remaining, 8192))
 
             if not message:
                 return ''
 
+            remaining -= len(message)
             full_message += message.decode(ENCODING)
             if len(full_message) == message_length:
                 return full_message
@@ -55,14 +57,16 @@ class Client:
     def get_file(self, message_length):
         """Function to receive full files"""
         full_file = b''
+        remaining = message_length
         while True:
-            message = self.client.recv(1024)
+            message = self.client.recv(min(remaining, 8192))
 
             if not message:
                 return ''
 
             full_file += message
-            progress = (len(full_file) / message_length) * 100
+            remaining -= len(message)
+            progress = (1 - remaining / message_length) * 100
             self.show_progress_bar(progress)
 
             if len(full_file) == message_length:
