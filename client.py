@@ -18,10 +18,12 @@ class Client:
         # Define two seperate thread handling reads and writes from and to the server
         self.receive_thread = threading.Thread(target=self.receive, args=())
         self.write_thread = threading.Thread(target=self.write, args=())
+        self.receive_thread.daemon = True
+        self.write_thread.daemon = True
 
         self.running = True
 
-        # Variable to check if message is a file
+        # Variable to check if expected message is a file
         self.file_name = ''
 
     def delete_folder(self, folder_name):
@@ -44,6 +46,9 @@ class Client:
         full_message = ''
         remaining = message_length
         while True:
+            # Receive either 8192, or the remaining, whichever is smaller
+            # since we do not want to read into the next data
+
             message = self.client.recv(min(remaining, 8192))
 
             if not message:
@@ -59,6 +64,8 @@ class Client:
         full_file = b''
         remaining = message_length
         while True:
+            # Receive either 8192, or the remaining, whichever is smaller
+            # since we do not want to read into the next data
             message = self.client.recv(min(remaining, 8192))
 
             if not message:
@@ -94,11 +101,14 @@ class Client:
         """Function to receive and display messages from the server"""
         while self.running:
             # Get message length in header
-            message_length = self.client.recv(10).decode(ENCODING)
+            try:
+                message_length = self.client.recv(10).decode(ENCODING)
+            except ConnectionResetError:
+                message_length = ''
 
             # If the other thread is not alive then quit
             if not self.write_thread.is_alive():
-                sys.exit(0)
+                self.exit_thread()
 
             # If received empty string, it means server has issues
             if message_length:
@@ -114,19 +124,21 @@ class Client:
                     message = self.get_message(message_length)
                     print(message)
             else:
-                print('Something went wrong. Press any key to exit. Disconnecting...')
-                self.running = False
-                self.client.close()
-                sys.exit(0)
+                self.exit_thread()
 
     def write(self):
         """Function to send messages to the server"""
         while self.running:
-            body = input()
+            try:
+                body = input()
+            except EOFError:
+                self.exit_thread()
+
             # If the other thread is not alive then quit
             if not self.receive_thread.is_alive():
-                sys.exit(0)
+                self.exit_thread()
 
+            # Empty input ignored
             if not body:
                 continue
 
@@ -186,6 +198,18 @@ class Client:
 '----------------------------------------------------------------'
 
         """)
+        try:
+            while self.running:
+                continue
+        except KeyboardInterrupt:
+            print('\nLeaving...')
+            sys.exit(0)
+
+    def exit_thread(self):
+        """Function to exit program"""
+        print('\nSomething went wrong. Press any key to exit. Disconnecting...')
+        self.running = False
+        sys.exit(0)
 
 if __name__ == '__main__':
     if len(sys.argv) <= 3:

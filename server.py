@@ -19,6 +19,7 @@ class Server:
     def __init__(self, host='127.0.0.1', port=1234):
         # Setup server socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.settimeout(1)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind((host, port))
         self.server.listen()
@@ -68,33 +69,31 @@ class Server:
                 files += f'   |--- {os.path.basename(entry.path)}\n'
         return files
 
-    def handle(self, client):
-        """Function to handle messages received from clients"""
-        while True:
-            try:
-                message = self.get_message(client)
-                if not message:
-                    if not self.running:
-                        sys.exit(0)
-                    self.kill_connection(client)
-                elif message[0] == '/':
-                    self.run_command(message[1:], client=client)
-                else:
-                    self.broadcast(f'[{self.clients[client][1]}]: ' + message,
-                                   mode=2, broadcaster=client)
-            except OSError:
-                sys.exit(0)
-
     def get_message(self, client):
         """Function to receive full messages with header size"""
         # For the first recv, the file size is retrieved
-        message_length = client.recv(10).decode(ENCODING)
-        if not message_length:
-            return ''
+        # Also checks for if client is alive
+        message_length = None
+        while message_length is None:
+            try:
+                message_length = client.recv(10).decode(ENCODING)
+                if not message_length:
+                    return ''
+            except socket.timeout:
+                continue
+            except ConnectionResetError:
+                return ''
+
         message_length = int(message_length)
         full_message = ''
         while True:
-            message = client.recv(min(message_length, 8192)).decode(ENCODING)
+            # Receive either 8192, or the remaining, whichever is smaller
+            # since we do not want to read into the next data
+            try:
+                message = client.recv(min(message_length, 8192)).decode(ENCODING)
+            except ConnectionResetError:
+                return ''
+
             if not message:
                 return ''
             message_length -= len(message)
@@ -137,7 +136,7 @@ class Server:
         self.broadcast(f'[SERVER]: {username} just left. Goodbye!', mode=1)
         logging.info("Broadcasted '%s just left. Goodbye!'", username)
         logging.info('Disconnected with %s. Remove client named %s', address, username)
-        print(f"Disconnected with {address}. Remove client named {username}'")
+        print(f"Disconnected with {address}. Remove client named {username}")
 
     def run_command(self, command, client=None):
         """Function to run commands when a forward slash given"""
@@ -182,17 +181,46 @@ class Server:
                                mode=3, broadcastee=self.taken_names[target])
                     logging.info("%s unicast '%s' to %s",
                                  self.clients[client][1], message, target)
+
             case 'leave':
                 self.kill_connection(client)
+
             case _:
                 self.broadcast('[SERVER]: Invalid command', mode=3, broadcastee=client)
                 logging.info("Unicast 'Invalid command' to %s", self.clients[client][1])
 
-    def run(self):
-        """Function to run The server"""
+    def handle(self, client):
+        """Function to handle messages received from clients"""
         while True:
             try:
-                client, address = self.server.accept()
+                message = self.get_message(client)
+                if not message:
+                    if not self.running:
+                        sys.exit(0)
+                    self.kill_connection(client)
+                elif message[0] == '/':
+                    self.run_command(message[1:], client=client)
+                else:
+                    self.broadcast(f'[{self.clients[client][1]}]: ' + message,
+                                   mode=2, broadcaster=client)
+            except OSError:
+                sys.exit(0)
+
+    def run(self):
+        """Function to run the server"""
+        try:
+            while True:
+                # If CTRL+C pressed, server closes
+                client = None
+                while not client:
+                    try:
+                        client, address = self.server.accept()
+                    except socket.timeout:
+                        continue
+                    except KeyboardInterrupt:
+                        self.kill_server()
+
+                client.settimeout(5)
                 username = self.get_message(client)
 
                 # Disallow duplicate username in chat
@@ -212,17 +240,23 @@ class Server:
                 self.broadcast(f'[SERVER]: {username} just joined. Welcome!', mode=1)
                 logging.info("Broadcast '%s just joined. Welcome!'", username)
                 thread = threading.Thread(target=self.handle, args=(client,))
+                thread.daemon = True
                 thread.start()
-            except KeyboardInterrupt:
-                self.server.close()
-                for client, info in self.clients.items():
-                    client.close()
-                    logging.info('Disconnected with %s. Remove client named %s',
-                                info[0], info[1])
-                logging.warning('Closed server')
-                print('Disconnecting...')
-                self.running = False
-                sys.exit(0)
+        except KeyboardInterrupt:
+            self.kill_server()
+
+    def kill_server(self):
+        """Function to close the server gracefully"""
+        self.server.close()
+        for client, info in self.clients.items():
+            client.close()
+            logging.info('Disconnected with %s. Remove client named %s',
+                        info[0], info[1])
+            print(f"Disconnected with {info[0]}. Remove client named {info[1]}")
+        logging.warning('Closed server')
+        print('Disconnecting...')
+        self.running = False
+        sys.exit(0)
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
