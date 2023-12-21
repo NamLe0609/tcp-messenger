@@ -1,35 +1,28 @@
-2023-12-21 00:21:26,282 - INFO - Opened server
-2023-12-21 00:21:26,284 - DEBUG - Created folder download
-2023-12-21 00:21:26,284 - DEBUG - Created 5 random binary files in download
-2023-12-21 00:21:29,352 - INFO - Connected with ('127.0.0.1', 60740). Add client named John
-2023-12-21 00:21:29,352 - INFO - Broadcast 'John just joined. Welcome!'
-2023-12-21 00:21:30,574 - INFO - Connected with ('127.0.0.1', 60754). Add client named Eva
-2023-12-21 00:21:30,575 - INFO - Broadcast 'Eva just joined. Welcome!'
-2023-12-21 00:21:31,685 - INFO - Connected with ('127.0.0.1', 60762). Add client named Josh
-2023-12-21 00:21:31,685 - INFO - Broadcast 'Josh just joined. Welcome!'
-2023-12-21 00:21:36,342 - INFO - Broadcast '[John]: Hey everyone' to all but John
-2023-12-21 00:21:40,714 - INFO - Broadcast '[John]: My nam is John' to all but John
-2023-12-21 00:21:45,721 - INFO - Broadcast '[John]: you can all hear me right?' to all but John
-2023-12-21 00:21:49,561 - INFO - Broadcast '[Eva]: Yes we can' to all but Eva
-2023-12-21 00:22:01,576 - INFO - Josh unicast 'yes I can hear you' to John
-2023-12-21 00:23:07,298 - INFO - John unicast 'oh okay thats good to know' to Josh
-2023-12-21 00:23:16,091 - INFO - Broadcast '[Josh]: okay im going to leave' to all but Josh
-2023-12-21 00:23:17,597 - INFO - Broadcasted 'Josh just left. Goodbye!'
-2023-12-21 00:23:17,597 - INFO - Disconnected with ('127.0.0.1', 60762). Remove client named Josh
-2023-12-21 00:23:33,927 - INFO - Broadcast '[Eva]: I need a file' to all but Eva
-2023-12-21 00:23:36,410 - INFO - Unicast files in download folder to Eva
-2023-12-21 00:24:06,408 - INFO - Unicast file named text.txt to Eva
-2023-12-21 00:24:19,546 - INFO - Broadcast '[John]: same' to all but John
-2023-12-21 00:24:26,552 - INFO - Unicast file named img.JPG to John
-2023-12-21 00:24:34,418 - INFO - Unicast file named video.mp4 to John
-2023-12-21 00:25:27,817 - INFO - Broadcast '[John]: My finle finished downloading!' to all but John
-2023-12-21 00:25:35,889 - INFO - Broadcast '[John]: *file' to all but John
-2023-12-21 00:25:42,657 - INFO - Broadcast '[John]: okay im leaving' to all but John
-2023-12-21 00:25:43,958 - INFO - Broadcasted 'John just left. Goodbye!'
-2023-12-21 00:25:43,958 - INFO - Disconnected with ('127.0.0.1', 60740). Remove client named John
-2023-12-21 00:25:51,001 - INFO - Broadcasted 'Eva just left. Goodbye!'
-2023-12-21 00:25:51,001 - INFO - Disconnected with ('127.0.0.1', 60754). Remove client named Eva
-2023-12-21 00:25:55,202 - INFO - Connected with ('127.0.0.1', 37488). Add client named John
-2023-12-21 00:25:55,203 - INFO - Broadcast 'John just joined. Welcome!'
-2023-12-21 00:26:00,582 - INFO - Disconnected with ('127.0.0.1', 37488). Remove client named John
-2023-12-21 00:26:00,582 - WARNING - Closed server
+2023-12-21 22:10:14,361 - INFO - Opened server
+2023-12-21 22:10:14,372 - DEBUG - Created folder download
+2023-12-21 22:10:14,379 - DEBUG - Created 5 random binary files in download
+2023-12-21 22:10:16,069 - INFO - Connected with ('127.0.0.1', 62458). Add client named joe
+2023-12-21 22:10:16,070 - INFO - Broadcast 'joe just joined. Welcome!'
+2023-12-21 22:10:17,160 - INFO - Connected with ('127.0.0.1', 62459). Add client named john
+2023-12-21 22:10:17,161 - INFO - Broadcast 'john just joined. Welcome!'
+2023-12-21 22:10:50,926 - INFO - Broadcast '[joe]: Broadcast test message 1' to all but joe
+2023-12-21 22:10:52,658 - INFO - Broadcast '[joe]: Broadcast test message 2' to all but joe
+2023-12-21 22:10:53,997 - INFO - Broadcast '[joe]: Broadcast test message 3' to all but joe
+2023-12-21 22:11:15,767 - INFO - Unicast 'You cannot whisper to yourself' to joe
+2023-12-21 22:11:29,831 - INFO - joe unicast 'Unicast test message 1' to john
+2023-12-21 22:11:33,096 - INFO - joe unicast 'Unicast test message 2' to john
+2023-12-21 22:11:34,435 - INFO - joe unicast 'Unicast test message 3' to john
+2023-12-21 22:12:05,246 - INFO - Unicast files in download folder to joe
+2023-12-21 22:12:18,357 - INFO - Unicast 'Invalid command' to joe
+2023-12-21 22:12:27,709 - INFO - Unicast file named a.bin to joe
+2023-12-21 22:12:27,710 - INFO - Unicast 'File requested does not exist' to joe
+2023-12-21 22:12:37,515 - INFO - Unicast file named file_1.bin to joe
+2023-12-21 22:13:35,271 - INFO - Unicast file named 1.mp4 to joe
+2023-12-21 22:14:04,768 - INFO - Unicast files in download folder to john
+2023-12-21 22:14:44,488 - INFO - Unicast file named 1.JPG to john
+2023-12-21 22:15:59,653 - INFO - Unicast file named 1.txt to john
+2023-12-21 22:16:14,887 - INFO - Broadcasted 'john just left. Goodbye!'
+2023-12-21 22:16:14,887 - INFO - Disconnected with ('127.0.0.1', 62459). Remove client named john
+2023-12-21 22:16:22,754 - INFO - Broadcasted 'joe just left. Goodbye!'
+2023-12-21 22:16:22,755 - INFO - Disconnected with ('127.0.0.1', 62458). Remove client named joe
+2023-12-21 22:16:27,013 - WARNING - Closed server
