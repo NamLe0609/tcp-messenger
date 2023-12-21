@@ -6,6 +6,8 @@ import os
 
 HEADERSIZE = 10
 ENCODING = 'utf-8'
+FILE_MSG = '0'
+TEXT_MSG = '1'
 
 class Client:
     """Class representing a client"""
@@ -102,24 +104,25 @@ class Client:
         while self.running:
             # Get message length in header
             try:
-                message_length = self.client.recv(10).decode(ENCODING)
+                message_header = self.client.recv(10).decode(ENCODING)
             except ConnectionResetError:
-                message_length = ''
+                message_header = ''
 
             # If the other thread is not alive then quit
             if not self.write_thread.is_alive():
                 self.exit_thread()
 
             # If received empty string, it means server has issues
-            if message_length:
-                message_length = int(message_length)
-                if self.file_name:
+            if message_header:
+                message_type = message_header[0]
+                message_length = int(message_header[1:])
+
+                if message_type == FILE_MSG:
                     file_string = self.get_file(message_length)
                     file_path = os.path.join(self.username, self.file_name)
                     with open(file_path, 'wb') as file:
                         file.write(file_string)
                     print(f"File saved at: {file_path}")
-                    self.file_name = ''
                 else:
                     message = self.get_message(message_length)
                     print(message)

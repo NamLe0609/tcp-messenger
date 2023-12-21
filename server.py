@@ -13,6 +13,8 @@ logging.basicConfig(filename='server.log',
 
 HEADERSIZE = 10
 ENCODING = 'utf-8'
+FILE_MSG = '0'
+TEXT_MSG = '1'
 
 class Server:
     """Class representing a server"""
@@ -105,11 +107,12 @@ class Server:
         """Function to send messages"""
         pre_encoded_message = message
         # For binary data, send as-is
+        # First bit is for type of message
         if isinstance(message, bytes):
-            header = f'{len(message):<{HEADERSIZE}}'.encode(ENCODING)
+            header = f'{FILE_MSG}{len(message):<{HEADERSIZE-1}}'.encode(ENCODING)
             message = header + message
         else:
-            message = f'{len(message):<{HEADERSIZE}}' + message
+            message = f'{TEXT_MSG}{len(message):<{HEADERSIZE-1}}' + message
             message = message.encode(ENCODING)
         match mode:
             # Broadcast to all (Server mode)
