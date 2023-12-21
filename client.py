@@ -48,10 +48,10 @@ class Client:
         full_message = ''
         remaining = message_length
         while True:
-            # Receive either 8192, or the remaining, whichever is smaller
+            # Receive either 4096, or the remaining, whichever is smaller
             # since we do not want to read into the next data
 
-            message = self.client.recv(min(remaining, 8192))
+            message = self.client.recv(min(remaining, 4096))
 
             if not message:
                 return ''
@@ -61,26 +61,26 @@ class Client:
             if len(full_message) == message_length:
                 return full_message
 
-    def get_file(self, message_length):
-        """Function to receive full files"""
-        full_file = b''
-        remaining = message_length
-        while True:
-            # Receive either 8192, or the remaining, whichever is smaller
-            # since we do not want to read into the next data
-            message = self.client.recv(min(remaining, 8192))
+    def get_file(self, message_length, file_path):
+        """Function to receive full files and write it to user folder"""
+        with open(file_path, 'wb') as file:
+            remaining = message_length
+            while remaining > 0:
+                # Receive either 65536, or the remaining, whichever is smaller
+                # since we do not want to read into the next data
+                message = self.client.recv(min(remaining, 65536))
 
-            if not message:
-                return ''
+                if not message:
+                    print(' Something went wrong!')
+                    break
 
-            full_file += message
-            remaining -= len(message)
-            progress = (1 - remaining / message_length) * 100
-            self.show_progress_bar(progress)
+                file.write(message)
+                remaining -= len(message)
+                progress = (1 - remaining / message_length) * 100
+                self.show_progress_bar(progress)
 
-            if len(full_file) == message_length:
+            if remaining == 0:
                 print(' Success!')
-                return full_file
 
     def show_progress_bar(self, progress):
         """Function to show a download progress bar"""
@@ -118,10 +118,8 @@ class Client:
                 message_length = int(message_header[1:])
 
                 if message_type == FILE_MSG:
-                    file_string = self.get_file(message_length)
                     file_path = os.path.join(self.username, self.file_name)
-                    with open(file_path, 'wb') as file:
-                        file.write(file_string)
+                    self.get_file(message_length, file_path)
                     print(f"File saved at: {file_path}")
                 else:
                     message = self.get_message(message_length)
