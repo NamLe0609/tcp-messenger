@@ -14,7 +14,11 @@ class Client:
     def __init__(self, username='John_Pork', host='127.0.0.1', port='1234'):
         # Setup client socket
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client.connect((host, port))
+        try:
+            self.client.connect((host, port))
+        except ConnectionRefusedError:
+            print('Could not connect to server')
+            sys.exit(0)
         self.username = username
 
         # Define two seperate thread handling reads and writes from and to the server
@@ -63,24 +67,27 @@ class Client:
 
     def get_file(self, message_length, file_path):
         """Function to receive full files and write it to user folder"""
-        with open(file_path, 'wb') as file:
-            remaining = message_length
-            while remaining > 0:
-                # Receive either 65536, or the remaining, whichever is smaller
-                # since we do not want to read into the next data
-                message = self.client.recv(min(remaining, 65536))
+        try:
+            with open(file_path, 'wb') as file:
+                remaining = message_length
+                while remaining > 0:
+                    # Receive either 65536, or the remaining, whichever is smaller
+                    # since we do not want to read into the next data
+                    message = self.client.recv(min(remaining, 65536))
 
-                if not message:
-                    print(' Something went wrong!')
-                    break
+                    if not message:
+                        print(' Something went wrong!')
+                        break
 
-                file.write(message)
-                remaining -= len(message)
-                progress = (1 - remaining / message_length) * 100
-                self.show_progress_bar(progress)
+                    file.write(message)
+                    remaining -= len(message)
+                    progress = (1 - remaining / message_length) * 100
+                    self.show_progress_bar(progress)
 
-            if remaining == 0:
-                print(' Success!')
+                if remaining == 0:
+                    print(' Success!')
+        except OSError:
+            self.exit_thread()
 
     def show_progress_bar(self, progress):
         """Function to show a download progress bar"""
@@ -101,31 +108,30 @@ class Client:
 
     def receive(self):
         """Function to receive and display messages from the server"""
-        while self.running:
-            # Get message length in header
-            try:
-                message_header = self.client.recv(10).decode(ENCODING)
-            except ConnectionResetError:
-                message_header = ''
+        try:
+            while self.running:
+                # Get message length in header
+                try:
+                    message_header = self.client.recv(10).decode(ENCODING)
+                except ConnectionResetError:
+                    message_header = ''
 
-            # If the other thread is not alive then quit
-            if not self.write_thread.is_alive():
-                self.exit_thread()
+                # If received empty string, it means server has issues
+                if message_header:
+                    message_type = message_header[0]
+                    message_length = int(message_header[1:])
 
-            # If received empty string, it means server has issues
-            if message_header:
-                message_type = message_header[0]
-                message_length = int(message_header[1:])
-
-                if message_type == FILE_MSG:
-                    file_path = os.path.join(self.username, self.file_name)
-                    self.get_file(message_length, file_path)
-                    print(f"File saved at: {file_path}")
+                    if message_type == FILE_MSG:
+                        file_path = os.path.join(self.username, self.file_name)
+                        self.get_file(message_length, file_path)
+                        print(f"File saved at: {file_path}")
+                    else:
+                        message = self.get_message(message_length)
+                        print(message)
                 else:
-                    message = self.get_message(message_length)
-                    print(message)
-            else:
-                self.exit_thread()
+                    self.exit_thread()
+        except OSError:
+            self.exit_thread()
 
     def write(self):
         """Function to send messages to the server"""
@@ -133,10 +139,6 @@ class Client:
             try:
                 body = input()
             except EOFError:
-                self.exit_thread()
-
-            # If the other thread is not alive then quit
-            if not self.receive_thread.is_alive():
                 self.exit_thread()
 
             # Empty input ignored
@@ -162,7 +164,7 @@ class Client:
             case 'download':
                 if len(command.split(' ')) == 1:
                     print('Fetching download folder content...')
-                else:
+                elif len(command.split(' ')) == 2:
                     self.file_name = command.split(' ')[1]
                     print('Downloading...')
 
@@ -203,8 +205,11 @@ class Client:
             while self.running:
                 continue
         except KeyboardInterrupt:
-            print('\nLeaving...')
-            sys.exit(0)
+            pass
+
+        self.write_thread.join()
+        self.receive_thread.join()
+        sys.exit(0)
 
     def exit_thread(self):
         """Function to exit program"""
@@ -218,5 +223,8 @@ if __name__ == '__main__':
         sys.exit()
 
     client = Client(username=sys.argv[1], host=sys.argv[2], port=int(sys.argv[3]))
-    client.run()
-    
+    try:
+        client.run()
+    except KeyboardInterrupt:
+        pass
+        

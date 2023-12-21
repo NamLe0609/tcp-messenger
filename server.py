@@ -156,12 +156,13 @@ class Server:
                     logging.info("Unicast files in download folder to %s", self.clients[client][1])
                 else:
                     _, file_name = command.split(' ')
-                    logging.info("Unicast file named %s to %s", file_name, self.clients[client][1])
-                    file_name = os.path.join('download', file_name)
-                    if os.path.exists(file_name):
-                        with open(file_name, 'rb') as file_data:
+                    file_path = os.path.join('download', file_name)
+                    if file_name and os.path.exists(file_path):
+                        with open(file_path, 'rb') as file_data:
                             file_content = file_data.read()
                             self.broadcast(file_content, mode=3, broadcastee=client)
+                            logging.info("Unicast file named %s to %s",
+                                         file_name, self.clients[client][1])
                     else:
                         self.broadcast('File requested does not exist',
                                        mode=3, broadcastee=client)
