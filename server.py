@@ -224,7 +224,7 @@ class Server:
                     except KeyboardInterrupt:
                         self.kill_server()
 
-                client.settimeout(5)
+                client.settimeout(1)
                 username = self.get_message(client)
 
                 # Disallow duplicate username in chat
