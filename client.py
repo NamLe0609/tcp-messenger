@@ -201,11 +201,6 @@ class Client:
 '----------------------------------------------------------------'
 
         """)
-        try:
-            while self.running:
-                continue
-        except KeyboardInterrupt:
-            pass
 
         self.write_thread.join()
         self.receive_thread.join()
