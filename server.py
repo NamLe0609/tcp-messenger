@@ -114,21 +114,34 @@ class Server:
         else:
             message = f'{TEXT_MSG}{len(message):<{HEADERSIZE-1}}' + message
             message = message.encode(ENCODING)
+
+        # Variable to keep track of disconnected clients whilst broadcasting
+        disconnected_clients = []
         match mode:
             # Broadcast to all (Server mode)
             case 1:
                 for client in self.clients:
-                    client.sendall(message)
+                    try:
+                        client.sendall(message)
+                    except ConnectionResetError:
+                        disconnected_clients.append(client)
             # Broadcast to all but broadcaster
             case 2:
                 for client in self.clients:
-                    if client != broadcaster:
-                        client.sendall(message)
+                    try:
+                        if client != broadcaster:
+                            client.sendall(message)
+                    except ConnectionResetError:
+                        disconnected_clients.append(client)
                 logging.info("Broadcast '%s' to all but %s",
                             pre_encoded_message, self.clients[broadcaster][1])
             # Broadcast to individual
             case 3:
                 broadcastee.sendall(message)
+
+        # Remove disconnected clients
+        for client in disconnected_clients:
+            self.kill_connection(client)
 
     def kill_connection(self, client):
         """Function to kill connection to unresponsive clients"""
