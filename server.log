@@ -9,7 +9,7 @@
 2023-12-21 22:10:52,658 - INFO - Broadcast '[joe]: Broadcast test message 2' to all but joe
 2023-12-21 22:10:53,997 - INFO - Broadcast '[joe]: Broadcast test message 3' to all but joe
 2023-12-21 22:11:15,767 - INFO - Unicast 'You cannot whisper to yourself' to joe
-2023-12-21 22:11:20,961 -INFO - Unicast 'You cannot whisper when there are only you and someone else' to johnpork
+2023-12-21 22:11:20,961 - INFO - Unicast 'You cannot whisper when there are only you and someone else' to joe
 2023-12-21 22:11:29,831 - INFO - joe unicast 'Unicast test message 1' to john
 2023-12-21 22:11:33,096 - INFO - joe unicast 'Unicast test message 2' to john
 2023-12-21 22:11:34,435 - INFO - joe unicast 'Unicast test message 3' to john
