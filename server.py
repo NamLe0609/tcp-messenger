@@ -162,29 +162,36 @@ class Server:
                             file_content = file_data.read()
                             self.broadcast(file_content, mode=3, broadcastee=client)
                             logging.info("Unicast file named %s to %s",
-                                         file_name, self.clients[client][1])
+                                        file_name, self.clients[client][1])
                     else:
                         self.broadcast('File requested does not exist',
                                        mode=3, broadcastee=client)
                         logging.info("Unicast 'File requested does not exist' to %s",
-                                     self.clients[client][1])
+                                    self.clients[client][1])
 
             case 'whisper':
                 _, target, message = command.split(' ', 2)
                 if target not in self.taken_names:
                     self.broadcast('[SERVER]: Username does not exist', mode=3, broadcastee=client)
                     logging.info("Unicast 'Username does not exist' to %s",
-                                 self.clients[client][1])
+                                self.clients[client][1])
                 elif target == self.clients[client][1]:
                     self.broadcast('[SERVER]: You cannot whisper to yourself',
                                    mode=3, broadcastee=client)
                     logging.info("Unicast 'You cannot whisper to yourself' to %s",
-                                 self.clients[client][1])
+                                self.clients[client][1])
+                elif len(self.clients) < 3:
+                    self.broadcast('[SERVER]: You cannot whisper' +
+                                   ' when there are only you and someone else',
+                                   mode=3, broadcastee=client)
+                    logging.info("Unicast 'You cannot whisper" +
+                                " when there are only you and someone else' to %s",
+                                self.clients[client][1])
                 else:
                     self.broadcast(f'[{self.clients[client][1]} (WHISPER)]: {message}',
                                mode=3, broadcastee=self.taken_names[target])
                     logging.info("%s unicast '%s' to %s",
-                                 self.clients[client][1], message, target)
+                                self.clients[client][1], message, target)
 
             case 'leave':
                 self.kill_connection(client)
