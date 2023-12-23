@@ -1,29 +1,36 @@
-2023-12-21 22:10:14,361 - INFO - Opened server
-2023-12-21 22:10:14,372 - DEBUG - Created folder download
-2023-12-21 22:10:14,379 - DEBUG - Created 5 random binary files in download
-2023-12-21 22:10:16,069 - INFO - Connected with ('127.0.0.1', 62458). Add client named joe
-2023-12-21 22:10:16,070 - INFO - Broadcast 'joe just joined. Welcome!'
-2023-12-21 22:10:17,160 - INFO - Connected with ('127.0.0.1', 62459). Add client named john
-2023-12-21 22:10:17,161 - INFO - Broadcast 'john just joined. Welcome!'
-2023-12-21 22:10:50,926 - INFO - Broadcast '[joe]: Broadcast test message 1' to all but joe
-2023-12-21 22:10:52,658 - INFO - Broadcast '[joe]: Broadcast test message 2' to all but joe
-2023-12-21 22:10:53,997 - INFO - Broadcast '[joe]: Broadcast test message 3' to all but joe
-2023-12-21 22:11:15,767 - INFO - Unicast 'You cannot whisper to yourself' to joe
-2023-12-21 22:11:20,961 - INFO - Unicast 'You cannot whisper when there are only you and someone else' to joe
-2023-12-21 22:11:29,831 - INFO - joe unicast 'Unicast test message 1' to john
-2023-12-21 22:11:33,096 - INFO - joe unicast 'Unicast test message 2' to john
-2023-12-21 22:11:34,435 - INFO - joe unicast 'Unicast test message 3' to john
-2023-12-21 22:12:05,246 - INFO - Unicast files in download folder to joe
-2023-12-21 22:12:18,357 - INFO - Unicast 'Invalid command' to joe
-2023-12-21 22:12:27,709 - INFO - Unicast file named a.bin to joe
-2023-12-21 22:12:27,710 - INFO - Unicast 'File requested does not exist' to joe
-2023-12-21 22:12:37,515 - INFO - Unicast file named file_1.bin to joe
-2023-12-21 22:13:35,271 - INFO - Unicast file named 1.mp4 to joe
-2023-12-21 22:14:04,768 - INFO - Unicast files in download folder to john
-2023-12-21 22:14:44,488 - INFO - Unicast file named 1.JPG to john
-2023-12-21 22:15:59,653 - INFO - Unicast file named 1.txt to john
-2023-12-21 22:16:14,887 - INFO - Broadcasted 'john just left. Goodbye!'
-2023-12-21 22:16:14,887 - INFO - Disconnected with ('127.0.0.1', 62459). Remove client named john
-2023-12-21 22:16:22,754 - INFO - Broadcasted 'joe just left. Goodbye!'
-2023-12-21 22:16:22,755 - INFO - Disconnected with ('127.0.0.1', 62458). Remove client named joe
-2023-12-21 22:16:27,013 - WARNING - Closed server
+2023-12-23 15:42:50,135 - INFO - Opened server
+2023-12-23 15:42:50,138 - DEBUG - Created folder download
+2023-12-23 15:42:50,146 - DEBUG - Created 5 random binary files in download
+2023-12-23 15:43:52,802 - INFO - Connected with ('127.0.0.1', 52951). Add client named joe
+2023-12-23 15:43:52,803 - INFO - Broadcast 'joe just joined. Welcome!'
+2023-12-23 15:44:01,050 - INFO - Connected with ('127.0.0.1', 52954). Add client named john
+2023-12-23 15:44:01,051 - INFO - Broadcast 'john just joined. Welcome!'
+2023-12-23 15:44:12,378 - INFO - Broadcast '[joe]: Broadcast test message 1' to all but joe
+2023-12-23 15:44:17,531 - INFO - Broadcast '[joe]: Broadcast test message 2' to all but joe
+2023-12-23 15:44:29,010 - INFO - Broadcast '[john]: Broadcast test message 3' to all but john
+2023-12-23 15:44:59,316 - INFO - Unicast 'You cannot whisper to yourself' to joe
+2023-12-23 15:45:09,796 - INFO - Unicast 'You cannot whisper when there are only you and someone else' to joe
+2023-12-23 15:46:12,904 - INFO - Connected with ('127.0.0.1', 52958). Add client named jane
+2023-12-23 15:46:12,904 - INFO - Broadcast 'jane just joined. Welcome!'
+2023-12-23 15:46:28,594 - INFO - joe unicast 'Unicast test message 1' to jane
+2023-12-23 15:46:39,740 - INFO - john unicast 'Unicast test message 2' to jane
+2023-12-23 15:46:57,018 - INFO - jane unicast 'Unicast test message 3' to joe
+2023-12-23 15:47:13,415 - INFO - Unicast files in download folder to joe
+2023-12-23 15:47:20,914 - INFO - Unicast 'Invalid command' to joe
+2023-12-23 15:48:42,190 - INFO - Unicast file named video.mp4 to joe
+2023-12-23 15:48:57,348 - INFO - Unicast file named image.JPG to john
+2023-12-23 15:49:05,168 - INFO - Unicast file named text.txt to jane
+2023-12-23 15:49:25,133 - INFO - Broadcast '[joe]: Broadcast test message after download' to all but joe
+2023-12-23 15:49:39,196 - INFO - jane unicast 'Unicast message after download' to joe
+2023-12-23 15:49:44,640 - INFO - Broadcasted 'jane just left. Goodbye!'
+2023-12-23 15:49:44,640 - INFO - Disconnected with ('127.0.0.1', 52958). Remove client named jane
+2023-12-23 15:49:51,655 - INFO - Connected with ('127.0.0.1', 52967). Add client named jane
+2023-12-23 15:49:51,656 - INFO - Broadcast 'jane just joined. Welcome!'
+2023-12-23 15:49:53,176 - INFO - Broadcasted 'jane just left. Goodbye!'
+2023-12-23 15:49:53,177 - INFO - Disconnected with ('127.0.0.1', 52967). Remove client named jane
+2023-12-23 15:50:02,783 - INFO - Broadcasted 'john just left. Goodbye!'
+2023-12-23 15:50:02,784 - INFO - Disconnected with ('127.0.0.1', 52954). Remove client named john
+2023-12-23 15:50:36,420 - INFO - Unicast file named video.mp4 to joe
+2023-12-23 15:50:36,612 - INFO - Broadcasted 'joe just left. Goodbye!'
+2023-12-23 15:50:36,612 - INFO - Disconnected with ('127.0.0.1', 52951). Remove client named joe
+2023-12-23 15:52:08,053 - WARNING - Closed server

@@ -1,0 +1,29 @@
+2023-12-21 22:10:14,361 - INFO - Opened server
+2023-12-21 22:10:14,372 - DEBUG - Created folder download
+2023-12-21 22:10:14,379 - DEBUG - Created 5 random binary files in download
+2023-12-21 22:10:16,069 - INFO - Connected with ('127.0.0.1', 62458). Add client named joe
+2023-12-21 22:10:16,070 - INFO - Broadcast 'joe just joined. Welcome!'
+2023-12-21 22:10:17,160 - INFO - Connected with ('127.0.0.1', 62459). Add client named john
+2023-12-21 22:10:17,161 - INFO - Broadcast 'john just joined. Welcome!'
+2023-12-21 22:10:50,926 - INFO - Broadcast '[joe]: Broadcast test message 1' to all but joe
+2023-12-21 22:10:52,658 - INFO - Broadcast '[joe]: Broadcast test message 2' to all but joe
+2023-12-21 22:10:53,997 - INFO - Broadcast '[joe]: Broadcast test message 3' to all but joe
+2023-12-21 22:11:15,767 - INFO - Unicast 'You cannot whisper to yourself' to joe
+2023-12-21 22:11:20,961 - INFO - Unicast 'You cannot whisper when there are only you and someone else' to joe
+2023-12-21 22:11:29,831 - INFO - joe unicast 'Unicast test message 1' to john
+2023-12-21 22:11:33,096 - INFO - joe unicast 'Unicast test message 2' to john
+2023-12-21 22:11:34,435 - INFO - joe unicast 'Unicast test message 3' to john
+2023-12-21 22:12:05,246 - INFO - Unicast files in download folder to joe
+2023-12-21 22:12:18,357 - INFO - Unicast 'Invalid command' to joe
+2023-12-21 22:12:27,709 - INFO - Unicast file named a.bin to joe
+2023-12-21 22:12:27,710 - INFO - Unicast 'File requested does not exist' to joe
+2023-12-21 22:12:37,515 - INFO - Unicast file named file_1.bin to joe
+2023-12-21 22:13:35,271 - INFO - Unicast file named 1.mp4 to joe
+2023-12-21 22:14:04,768 - INFO - Unicast files in download folder to john
+2023-12-21 22:14:44,488 - INFO - Unicast file named 1.JPG to john
+2023-12-21 22:15:59,653 - INFO - Unicast file named 1.txt to john
+2023-12-21 22:16:14,887 - INFO - Broadcasted 'john just left. Goodbye!'
+2023-12-21 22:16:14,887 - INFO - Disconnected with ('127.0.0.1', 62459). Remove client named john
+2023-12-21 22:16:22,754 - INFO - Broadcasted 'joe just left. Goodbye!'
+2023-12-21 22:16:22,755 - INFO - Disconnected with ('127.0.0.1', 62458). Remove client named joe
+2023-12-21 22:16:27,013 - WARNING - Closed server
