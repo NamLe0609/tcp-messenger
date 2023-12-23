@@ -29,7 +29,7 @@ class Client:
 
         self.running = True
 
-        # Variable to check if expected message is a file
+        # Variable to keep track of file name
         self.file_name = ''
 
     def delete_folder(self, folder_name):
@@ -52,9 +52,8 @@ class Client:
         full_message = ''
         remaining = message_length
         while True:
-            # Receive either 4096, or the remaining, whichever is smaller
-            # since we do not want to read into the next data
-
+            # Receive either 4096, or the remaining,
+            # whichever is smaller since we do not want to overbuffer
             message = self.client.recv(min(remaining, 4096))
 
             if not message:
@@ -71,8 +70,9 @@ class Client:
             with open(file_path, 'wb') as file:
                 remaining = message_length
                 while remaining > 0:
-                    # Receive either 65536, or the remaining, whichever is smaller
-                    # since we do not want to read into the next data
+                    # Receive either 65536, or the remaining,
+                    # whichever is smaller since we do not want to overbuffer
+                    # Large buffer size helps with download speeds
                     message = self.client.recv(min(remaining, 65536))
 
                     if not message:
@@ -81,7 +81,7 @@ class Client:
 
                     file.write(message)
                     remaining -= len(message)
-                    progress = (1 - remaining / message_length) * 100
+                    progress = 1 - remaining / message_length
                     self.show_progress_bar(progress)
 
                 if remaining == 0:
@@ -92,12 +92,11 @@ class Client:
     def show_progress_bar(self, progress):
         """Function to show a download progress bar"""
         bar_length = 25
-        progress = max(0, min(progress, 100))  # Ensure progress is between 0 and 100
-        width = int(bar_length * progress / 100)
+        width = int(bar_length * progress)
+        progress *= 100
         percentage = f"{progress:.2f}%"
         progress_bar = '[' + '#' * width + ' ' * (bar_length - width) + ']' + ' ' + percentage
         # Uses ANSI character to move cursor left
-        # Not sure if it works on windows or not, but works on Linux
         sys.stdout.write("\u001b[1000D" + progress_bar)
         sys.stdout.flush()
 
@@ -112,7 +111,7 @@ class Client:
             while self.running:
                 # Get message length in header
                 try:
-                    message_header = self.client.recv(10).decode(ENCODING)
+                    message_header = self.client.recv(HEADERSIZE).decode(ENCODING)
                 except ConnectionResetError:
                     message_header = ''
 
@@ -145,6 +144,12 @@ class Client:
             if not body:
                 continue
 
+            # Prevent overly large message (1000 characters!)
+            # Large messages doesnt cause problems, but are very ugly.
+            # This feature can be added without causing problems
+            #if len(body) > 1000:
+            #    print('Your message is too big!')
+
             # Commands start with a '/'
             if body[0] == '/':
                 body = self.run_command(body)
@@ -155,11 +160,6 @@ class Client:
         """Function to run commands when a forward slash given"""
         command_type = command.split(' ')[0]
         match command_type[1:]:
-            case 'help':
-                pass
-
-            case 'make_folder':
-                pass
 
             case 'download':
                 if len(command.split(' ')) == 1:

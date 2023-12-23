@@ -68,7 +68,7 @@ class Server:
         files = ''
         for entry in os.scandir(folder_name):
             if entry.is_file():
-                files += f'   |--- {os.path.basename(entry.path)}\n'
+                files += f'   |--- {os.path.basename(entry.path)}\n' # Style it nicely
         return files
 
     def get_message(self, client):
@@ -78,7 +78,7 @@ class Server:
         message_length = None
         while message_length is None:
             try:
-                message_length = client.recv(10).decode(ENCODING)
+                message_length = client.recv(HEADERSIZE).decode(ENCODING)
                 if not message_length:
                     return ''
             except socket.timeout:
@@ -105,10 +105,12 @@ class Server:
 
     def broadcast(self, message, mode=0, broadcaster=None, broadcastee=None):
         """Function to send messages"""
+        # Keep pre_encoded message for logging
         pre_encoded_message = message
-        # For binary data, send as-is
-        # First bit is for type of message
+
         if isinstance(message, bytes):
+            # For binary data, send as-is without encoding main data
+            # First bit in header is for type of message
             header = f'{FILE_MSG}{len(message):<{HEADERSIZE-1}}'.encode(ENCODING)
             message = header + message
         else:
@@ -234,7 +236,7 @@ class Server:
         """Function to run the server"""
         try:
             while True:
-                # If CTRL+C pressed, server closes
+                # Unblock regularly to check if server should close
                 client = None
                 while not client:
                     try:
