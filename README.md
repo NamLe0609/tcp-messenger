@@ -16,7 +16,7 @@ A client-server messaging system, enabling real-time text communication and file
 - **Download a file**: `/download [file_name]`
 - **Disconnect from server**: `/leave`
 
-## Notes:
+## Note:
 
 **Downloading**: For the file name, include the file extension type like .bin or .mp3.
 
