@@ -1,7 +1,5 @@
 # Python Instant Messenger
 
-## Overview:
-
 A client-server messaging system, enabling real-time text communication and file sharing over TCP.
 
 ## Setup:
